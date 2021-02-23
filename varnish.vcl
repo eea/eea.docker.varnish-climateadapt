@@ -109,10 +109,16 @@ sub vcl_recv {
         return(pass);
     }
 
+
+    ## for some urls or request we can do a pass here (no caching)
+    if (req.method == "GET" && (req.url ~ "aq_parent" || req.url ~ "manage$" || req.url ~ "manage_workspace$" || req.url ~ "manage_main$" || req.url ~ "@@rdf")) {
+        return(pass);
+    }
+
     ### always cache these items:
 
     # javascript
-    if (req.method == "GET" && req.url ~ "\.(js)") {
+    if (req.method == "GET" && req.url ~ "\.(js|css)") {
         return(hash);
     }
 
@@ -129,11 +135,6 @@ sub vcl_recv {
     ## xml
     if (req.method == "GET" && req.url ~ "\.(xml)$") {
         return(hash);
-    }
-
-    ## for some urls or request we can do a pass here (no caching)
-    if (req.method == "GET" && (req.url ~ "aq_parent" || req.url ~ "manage$" || req.url ~ "manage_workspace$" || req.url ~ "manage_main$" || req.url ~ "@@rdf")) {
-        return(pass);
     }
 
     ## lookup anything else
@@ -167,8 +168,9 @@ sub vcl_backend_response {
     }
 
     # cache all XML and RDF objects for 1 day
-    if (beresp.http.Content-Type ~ "(text\/xml|application\/xml|application\/atom\+xml|application\/rss\+xml|application\/rdf\+xml)") {
-        set beresp.ttl = 1d;
+    if (beresp.http.Content-Type ~ "(text\/xml|application\/xml|application\/atom\+xml|application\/rss\+xml)") {
+		set beresp.uncacheable = true;
+        # set beresp.ttl = 1d;
         set beresp.http.X-Varnish-Caching-Rule-Id = "xml-rdf-files";
         set beresp.http.X-Varnish-Header-Set-Id = "cache-in-proxy-24-hours";
     }
