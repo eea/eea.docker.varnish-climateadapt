@@ -147,6 +147,8 @@ sub vcl_pipe {
 }
 
 sub vcl_backend_response {
+	set beresp.ttl = 1h;
+
     # needed for ban-lurker
     # Cleanup double slashes: '//' -> '/' - refs #95891
     set beresp.http.x-url = regsub(bereq.url, "\/\/", "/");
@@ -167,6 +169,16 @@ sub vcl_backend_response {
         set beresp.http.Vary = beresp.http.Vary + ", Accept";
     }
 
+    if (beresp.url ~ "\.(gif|jpg|jpeg|bmp|png|tiff|tif|ico|img|tga|wmf|svg|swf|ico|mp3|mp4|m4a|ogg|mov|avi|wmv)$") {
+            set beresp.ttl = 1w;
+            set beresp.grace = 24h;
+    }
+
+    if (beresp.url ~ "\.(css|js)$") {
+            set beresp.ttl = 1d;
+            set beresp.grace = 24h;
+    }
+
     # cache all XML and RDF objects for 1 day
     if (beresp.http.Content-Type ~ "(text\/xml|application\/xml|application\/atom\+xml|application\/rss\+xml|application\/rdf\+xml)") {
         # set beresp.ttl = 1d;
@@ -177,6 +189,7 @@ sub vcl_backend_response {
 
     # Headers for webfonts and truetype fonts
     if (beresp.http.Content-Type ~ "(application\/vnd.ms-fontobject|font\/truetype|application\/font-woff|application\/x-font-woff)") {
+		set beresp.http.Access-Control-Allow-Origin = "*";
         # fix for loading Font Awesome under IE11 on Win7, see #94853
         if (bereq.http.User-Agent ~ "Trident" || bereq.http.User-Agent ~ "Windows NT 6.1") {
             unset beresp.http.Vary;
