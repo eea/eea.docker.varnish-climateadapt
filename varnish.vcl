@@ -28,6 +28,24 @@ sub vcl_recv {
         }
     }
 
+    if (req.restarts == 0) {
+        if (req.http.x-forwarded-for) {
+            set req.http.X-Forwarded-For = req.http.X-Forwarded-For + ", " + client.ip;
+        } else {
+            set req.http.X-Forwarded-For = client.ip;
+        }
+    }
+    if (req.method != "GET" &&
+        req.method != "HEAD" &&
+        req.method != "PUT" &&
+        req.method != "POST" &&
+        req.method != "TRACE" &&
+        req.method != "OPTIONS" &&
+        req.method != "DELETE") {
+        /* Non-RFC2616 or CONNECT which is weird. */
+        return (pipe);
+    }
+
     if (req.http.X-Forwarded-Proto == "https" ) {
         set req.http.X-Forwarded-Port = "443";
     } else {
@@ -144,6 +162,7 @@ sub vcl_recv {
 sub vcl_pipe {
     # This is not necessary if we do not do any request rewriting
     set req.http.connection = "close";
+    return (pipe);
 }
 
 sub vcl_backend_response {
