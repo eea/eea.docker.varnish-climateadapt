@@ -169,12 +169,12 @@ sub vcl_backend_response {
         set beresp.http.Vary = beresp.http.Vary + ", Accept";
     }
 
-    if (beresp.url ~ "\.(gif|jpg|jpeg|bmp|png|tiff|tif|ico|img|tga|wmf|svg|swf|ico|mp3|mp4|m4a|ogg|mov|avi|wmv)$") {
+    if (bereq.url ~ "\.(gif|jpg|jpeg|bmp|png|tiff|tif|ico|img|tga|wmf|svg|swf|ico|mp3|mp4|m4a|ogg|mov|avi|wmv)$") {
             set beresp.ttl = 1w;
             set beresp.grace = 24h;
     }
 
-    if (beresp.url ~ "\.(css|js)$") {
+    if (bereq.url ~ "\.(css|js)$") {
             set beresp.ttl = 1d;
             set beresp.grace = 24h;
     }
