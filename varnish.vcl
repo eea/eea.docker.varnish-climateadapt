@@ -147,8 +147,6 @@ sub vcl_pipe {
 }
 
 sub vcl_backend_response {
-	set beresp.ttl = 1h;
-
     # needed for ban-lurker
     # Cleanup double slashes: '//' -> '/' - refs #95891
     set beresp.http.x-url = regsub(bereq.url, "\/\/", "/");
@@ -183,6 +181,7 @@ sub vcl_backend_response {
     if (beresp.http.Content-Type ~ "(text\/xml|application\/xml|application\/atom\+xml|application\/rss\+xml|application\/rdf\+xml)") {
         # set beresp.ttl = 1d;
 		set beresp.uncacheable = true;
+        set beresp.http.X-Cacheable = "NO: Not Cacheable";
         set beresp.http.X-Varnish-Caching-Rule-Id = "xml-rdf-files";
         set beresp.http.X-Varnish-Header-Set-Id = "cache-in-proxy-24-hours";
     }
