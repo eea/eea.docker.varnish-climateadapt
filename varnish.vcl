@@ -168,9 +168,9 @@ sub vcl_backend_response {
     }
 
     # cache all XML and RDF objects for 1 day
-    if (beresp.http.Content-Type ~ "(text\/xml|application\/xml|application\/atom\+xml|application\/rss\+xml)") {
-		set beresp.uncacheable = true;
+    if (beresp.http.Content-Type ~ "(text\/xml|application\/xml|application\/atom\+xml|application\/rss\+xml|application\/rdf\+xml)") {
         # set beresp.ttl = 1d;
+		set beresp.uncacheable = true;
         set beresp.http.X-Varnish-Caching-Rule-Id = "xml-rdf-files";
         set beresp.http.X-Varnish-Header-Set-Id = "cache-in-proxy-24-hours";
     }
